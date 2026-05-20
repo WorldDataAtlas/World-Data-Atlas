@@ -2,7 +2,9 @@ import geopandas as gpd
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, Normalize
-
+import matplotlib.image as mpimg
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import os
 
 def create_world_map(
     highlight_countries,
@@ -52,7 +54,7 @@ def create_world_map(
     watermark_ha="center",
     watermark_va="center",
     watermark_rotation=0,
-    color_background="#0B0F14",
+    color_background="#010103",
     color_sea="#0B0F14",
     color_no_data="#1B222B",
     color_border="#2D3744",
@@ -84,6 +86,11 @@ def create_world_map(
     legend_tick_labels=None,
     fill_missing_value=0,
     show_plot=True,
+    logo_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Logos", "5.png")),
+    logo_x=0.92,
+    logo_y=0.08,
+    logo_zoom=0.08,
+    logo_alpha=0.9,
     world_url="https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip"):
 
     if antarctica_names is None: antarctica_names = ["Antarctica"]
@@ -171,7 +178,18 @@ def create_world_map(
             weight=watermark_font_weight,
             alpha=watermark_alpha,
             rotation=watermark_rotation)
+        
+    if logo_path:
+        logo = mpimg.imread(logo_path)
+        imagebox = OffsetImage(logo, zoom=logo_zoom, alpha=logo_alpha)
 
+        ab = AnnotationBbox(
+            imagebox,
+            (logo_x, logo_y),
+            xycoords="figure fraction",
+            frameon=False)
+
+    fig.add_artist(ab)
     if map_x_limits is not None: ax.set_xlim(map_x_limits)
     if map_y_limits is not None: ax.set_ylim(map_y_limits)
     if not show_axis: ax.axis("off")
