@@ -23,12 +23,10 @@ settings.py
 *.db
 *.sqlite
 
-# Generated outputs
-outputs/
-world_fertility/
-*.mp4
-*.gif
-
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Generated media
+*.png
+*.mp4
