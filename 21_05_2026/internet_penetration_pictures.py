@@ -12,36 +12,72 @@ from graphic_map import create_world_map
 
 engine = sa.create_engine(s.connection_string, fast_executemany=True)
 
-for year in range(1960, 2025):
+for year in range(1990, 2025):
     
     print(year)
     
-    query = """ SELECT 
-                    D.[country_code],
-                    D.[country_name],
-                    D.[country_id],
-                    LOG(CAST(D.[value] AS FLOAT) / CAST(W.[value] AS FLOAT)) AS [value]
-                FROM [World_Data_Atlas].[worldbank].[data] AS D
-                LEFT JOIN (
-                    SELECT [wb_id], [iso2_code], [name], [is_country]
-                    FROM [World_Data_Atlas].[worldbank].[entities]
-                    WHERE [is_country] = 1
-                ) AS ENT ON ENT.[name] = D.[country_name]
-                INNER JOIN (
-                    SELECT [year], [value]
-                    FROM [World_Data_Atlas].[worldbank].[data]
-                    WHERE [indicator_code] = 'NY.GDP.PCAP.CD' AND [country_name] = 'World' AND [value] IS NOT NULL AND [value] > 0
-                ) AS W ON W.[year] = D.[year]
-                WHERE D.[indicator_code] = 'NY.GDP.PCAP.CD' AND D.[year] = """ + str(year) + """ AND ENT.[is_country] = 1 AND D.[value] IS NOT NULL AND D.[value] > 0
-                ORDER BY [value] DESC;
-
+    query = """ DECLARE @target_year INT = """ + str(year) + """;
+                DECLARE @max_age INT = 6;
+                WITH countries AS (
+                    SELECT ENT.[name] AS country_name
+                    FROM [World_Data_Atlas].[worldbank].[entities] AS ENT
+                    WHERE ENT.[is_country] = 1),
+                all_history AS (
+                    SELECT
+                        D.[country_name],
+                        COUNT(*) AS historical_rows
+                    FROM [World_Data_Atlas].[worldbank].[data] AS D
+                    INNER JOIN countries AS C ON C.[country_name] = D.[country_name]
+                    WHERE
+                        D.[indicator_code] = 'IT.NET.USER.ZS'
+                        AND D.[year] < @target_year
+                        AND D.[value] IS NOT NULL
+                    GROUP BY D.[country_name]),
+                recent_values AS (
+                    SELECT
+                        D.[country_code],
+                        D.[country_id],
+                        D.[country_name],
+                        D.[year] AS value_year,
+                        D.[value],
+                        ROW_NUMBER() OVER (PARTITION BY D.[country_name] ORDER BY D.[year] DESC) AS rn
+                    FROM [World_Data_Atlas].[worldbank].[data] AS D
+                    INNER JOIN countries AS C ON C.[country_name] = D.[country_name]
+                    WHERE
+                        D.[indicator_code] = 'IT.NET.USER.ZS'
+                        AND D.[year] BETWEEN (@target_year - @max_age + 1) AND @target_year
+                        AND D.[value] IS NOT NULL)
+                SELECT
+                    COALESCE(R.[country_code], D0.[country_code]) AS [country_code],
+                    COALESCE(R.[country_id], D0.[country_id]) AS [country_id],
+                    C.[country_name],
+                    CASE
+                        WHEN R.rn = 1 THEN R.[value]
+                        WHEN H.historical_rows IS NULL THEN 0
+                    END AS [value],
+                    R.[value_year]
+                FROM countries AS C
+                LEFT JOIN recent_values AS R ON R.[country_name] = C.[country_name] AND R.rn = 1
+                LEFT JOIN all_history AS H ON H.[country_name] = C.[country_name]
+                OUTER APPLY (
+                    SELECT TOP 1
+                        D.[country_code],
+                        D.[country_id]
+                    FROM [World_Data_Atlas].[worldbank].[data] AS D
+                    WHERE
+                        D.[country_name] = C.[country_name]
+                        AND D.[indicator_code] = 'IT.NET.USER.ZS'
+                    ORDER BY D.[year] DESC
+                ) AS D0
+                WHERE R.rn = 1 OR H.historical_rows IS NULL
+                ORDER BY [value];
                 """
 
     df = pd.read_sql(query, engine)
     highlight_countries = (df.dropna(subset=["country_code", "value"]).set_index("country_code")["value"].to_dict())
     create_world_map(
         highlight_countries=highlight_countries,
-        map_title="GDP per Capita Relative to World Average",
+        map_title="Individuals using the Internet (% of population)",
         map_subtitle=str(year),
         source_text="Source: World Bank",
         watermark_text="World Data Atlas",
@@ -51,7 +87,7 @@ for year in range(1960, 2025):
         fig_height=9,
         dpi=450,
         save_image=True,
-        output_file="20_05_2026\\results\\world_gdppp_" + str(year) + ".png",
+        output_file="21_05_2026\\results\\internet_" + str(year) + ".png",
         output_bbox="tight",
         output_face_color=True,
         tight_layout=True,
@@ -92,7 +128,7 @@ for year in range(1960, 2025):
         color_no_data="#1E293B",
         color_border="#334155",
         color_scale_low="#3B82F6",
-        color_scale_high="#FF0000",       
+        color_scale_high="#37FF00",       
         highlight_border_color="#F3F4F6",
         country_border_width=0.08,
         highlight_border_width=0.12,
@@ -113,10 +149,10 @@ for year in range(1960, 2025):
         legend_pad=0.012,
         legend_shrink=0.58,
         legend_aspect=24,
-        legend_min_value=-3,
-        legend_max_value=2.5,
-        legend_ticks = [-3, -2, -1, 0, 1, 2, 2.5],
-        legend_tick_labels = ["<0.05×","0.14×","0.37×","1×","2.7×","7.4×",">12×"],
+        legend_min_value=0,
+        legend_max_value=100,
+        legend_ticks = None,
+        legend_tick_labels = None,
         fill_missing_value=0,
         show_plot=False,
         logo_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Logos", "5.png")),
