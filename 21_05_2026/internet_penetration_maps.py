@@ -7,11 +7,9 @@ sys.path.insert(0, etl_path)
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "modules"))
 sys.path.insert(0, module_path)
 import settings as s
-from graphic_map import create_world_map
-
+from graph_map import create_world_map
 
 engine = sa.create_engine(s.connection_string, fast_executemany=True)
-
 for year in range(1990, 2025):
     
     print(year)

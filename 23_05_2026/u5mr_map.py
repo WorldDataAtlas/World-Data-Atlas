@@ -11,51 +11,21 @@ from graph_map import create_world_map
 
 engine = sa.create_engine(s.connection_string, fast_executemany=True)
 
-query = """ WITH ranked_data AS (
-            SELECT
-                D.[country_code],
-                D.[country_id],
-                D.[country_name],
-                D.[year],
-                CAST(D.[value] AS FLOAT) AS gdp_per_capita,
-                RANK() OVER (PARTITION BY D.[year] ORDER BY D.[value] DESC) AS gdp_rank
-            FROM [World_Data_Atlas].[worldbank].[data] AS D
-            LEFT JOIN (
-                SELECT
-                    [wb_id],
-                    [iso2_code],
-                    [name],
-                    [is_country]
-                FROM [World_Data_Atlas].[worldbank].[entities]
-                WHERE [is_country] = 1) AS ENT
-                ON ENT.[name] = D.[country_name]
-            WHERE D.[indicator_code] = 'NY.GDP.PCAP.CD' AND ENT.[is_country] = 1 AND D.[year] IN (1990, 2024) AND D.[value] IS NOT NULL),
-            pivoted AS (
-            SELECT
-                [country_code],
-                [country_id],
-                [country_name],
-                MAX(CASE WHEN [year] = 1990 THEN gdp_per_capita END) AS gdp_1990,
-                MAX(CASE WHEN [year] = 2024 THEN gdp_per_capita END) AS gdp_2024,
-                MAX(CASE WHEN [year] = 1990 THEN gdp_rank END) AS rank_1990,
-                MAX(CASE WHEN [year] = 2024 THEN gdp_rank END) AS rank_2024
-            FROM ranked_data
-            GROUP BY [country_code], [country_id], [country_name])
-            SELECT 
-                [country_code],
-                [country_name],
-                [country_id],
-                (rank_1990 - rank_2024) AS [value]
-            FROM pivoted
-            WHERE rank_1990 IS NOT NULL AND rank_2024 IS NOT NULL"""
+query = """ SELECT [location_name]
+                ,[iso2_code]
+                ,[iso3_code] AS [country_code]
+                ,[value]
+            FROM [World_Data_Atlas].[un].[data]
+            WHERE [indicator_id] = 22 and [variant_id] = 4 and [sex_id] = 3 and [year] = 2024
+            order by [value]"""
 
 df = pd.read_sql(query, engine)
 highlight_countries = (df.dropna(subset=["country_code", "value"]).set_index("country_code")["value"].to_dict())
 create_world_map(
     highlight_countries=highlight_countries,
-    map_title="Biggest GDP per Capita Ranking Changes ",
-    map_subtitle='1990 - 2024',
-    source_text="Source: World Bank",
+    map_title="Global Under-Five Mortality",
+    map_subtitle='2024',
+    source_text="Source: United Nations",
     watermark_text="World Data Atlas",
     iso_column="ADM0_A3",
     value_column="value",
@@ -63,7 +33,7 @@ create_world_map(
     fig_height=9,
     dpi=450,
     save_image=True,
-    output_file="22_05_2026\\results\\rank_gdp_per_person_1990_2024.png",
+    output_file="23_05_2026\\results\\u5mr_2024.png",
     output_bbox="tight",
     output_face_color=True,
     tight_layout=True,
@@ -103,8 +73,8 @@ create_world_map(
     color_sea="#0B1220",
     color_no_data="#1E293B",
     color_border="#334155",
-    color_scale_low="#F63B3B",
-    color_scale_high="#37FF00",       
+    color_scale_low="#00FF1A",
+    color_scale_high="#FF0000",       
     highlight_border_color="#F3F4F6",
     country_border_width=0.08,
     highlight_border_width=0.12,
@@ -125,8 +95,8 @@ create_world_map(
     legend_pad=0.012,
     legend_shrink=0.58,
     legend_aspect=24,
-    legend_min_value=-80,
-    legend_max_value=110,
+    legend_min_value=-1,
+    legend_max_value=70,
     legend_ticks = None,
     legend_tick_labels = None,
     fill_missing_value=0,

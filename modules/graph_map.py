@@ -94,14 +94,10 @@ def create_world_map(
     world_url="https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip"):
 
     if antarctica_names is None: antarctica_names = ["Antarctica"]
-
     plt.rcParams["font.family"] = font_family
-
     world = gpd.read_file(world_url)
     world = world.to_crs("+proj=robin")
-
     if remove_antarctica: world = world[~world["ADMIN"].isin(antarctica_names)]
-
     df = pd.DataFrame([{iso_column: iso, value_column: value} for iso, value in highlight_countries.items()])
     merged = world.merge(df, on=iso_column, how="left")
     merged[value_column] = merged[value_column].fillna(fill_missing_value)
@@ -127,7 +123,6 @@ def create_world_map(
         linewidth=highlight_border_width,
         alpha=highlight_alpha,
         legend=False)
-
     if show_legend:
         sm = plt.cm.ScalarMappable(cmap=custom_cmap, norm=norm)
         sm._A = []
@@ -138,9 +133,7 @@ def create_world_map(
         cbar.outline.set_linewidth(legend_border_width)
         if legend_ticks is not None: cbar.set_ticks(legend_ticks)
         if legend_tick_labels is not None: cbar.set_ticklabels(legend_tick_labels)
-
     ax.set_title(map_title, fontsize=title_font_size, color=title_color, weight=title_font_weight, pad=title_pad)
-
     if map_subtitle:
         ax.text(
             subtitle_x,
@@ -152,7 +145,6 @@ def create_world_map(
             fontsize=subtitle_font_size,
             color=subtitle_color,
             weight=subtitle_font_weight)
-
     if source_text:
         ax.text(
             source_x,
@@ -164,7 +156,6 @@ def create_world_map(
             fontsize=source_font_size,
             color=source_color,
             weight=source_font_weight)
-
     if watermark_text:
         ax.text(
             watermark_x,
@@ -177,18 +168,11 @@ def create_world_map(
             color=watermark_color,
             weight=watermark_font_weight,
             alpha=watermark_alpha,
-            rotation=watermark_rotation)
-        
+            rotation=watermark_rotation)        
     if logo_path:
         logo = mpimg.imread(logo_path)
         imagebox = OffsetImage(logo, zoom=logo_zoom, alpha=logo_alpha)
-
-        ab = AnnotationBbox(
-            imagebox,
-            (logo_x, logo_y),
-            xycoords="figure fraction",
-            frameon=False)
-
+        ab = AnnotationBbox(imagebox,(logo_x, logo_y),xycoords="figure fraction",frameon=False)
     fig.add_artist(ab)
     if map_x_limits is not None: ax.set_xlim(map_x_limits)
     if map_y_limits is not None: ax.set_ylim(map_y_limits)
@@ -201,7 +185,6 @@ def create_world_map(
     else: plt.close(fig)
 
 """
-
 ISO_COLUMN
     Name of the country ISO code column inside the shapefile dataset.
     Usually: "ISO_A3"
