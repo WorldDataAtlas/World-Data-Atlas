@@ -20,16 +20,16 @@ query = """
 MAP_TITLE = ''
 MAP_SUBTITLE = ''
 MAP_SOURCE = ''
-FILE_NAME = ''
+FILE_NAME = '.png'
 LEGEND_MIN = 0
 LEGEND_MAX = 10
-COLOR_SCALE_LOW="#00FF1A",
-COLOR_SCALE_HIGH="#FF0000",
+COLOR_SCALE_LOW="#00FF1A"
+COLOR_SCALE_HIGH="#FF0000"
 
 # ============================================================
 
 OUTPUT_DIR = BASE_DIR / "results"
-OUTPUT_FILE = OUTPUT_DIR / FILE_NAME + ".png"
+OUTPUT_FILE = OUTPUT_DIR / FILE_NAME
 engine = sa.create_engine(s.connection_string, fast_executemany=True)
 df = pd.read_sql(query, engine)
 highlight_countries = (df.dropna(subset=["country_code", "value"]).set_index("country_code")["value"].to_dict())

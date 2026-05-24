@@ -20,7 +20,7 @@ query = """
 MAP_TITLE = ''
 MAP_SUBTITLE = "World, 1960 - 2024"
 MAP_SOURCE = ''
-FILE_NAME = ''
+FILE_NAME = '.png'
 FOOTER_LEFT = ''
 FOOTER_RIGHT = ''
 SERIES_COL = ''
@@ -32,7 +32,7 @@ series_config = [   {"source_value": "", "label": "", "color": "#60A5FA"},
 # ============================================================
 
 OUTPUT_DIR = BASE_DIR / "results"
-OUTPUT_FILE = OUTPUT_DIR / FILE_NAME + ".png"
+OUTPUT_FILE = OUTPUT_DIR / FILE_NAME
 engine = sa.create_engine(s.connection_string)
 df = pd.read_sql(query, engine)
 df["year"] = df["year"].astype(int)

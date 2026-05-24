@@ -183,6 +183,7 @@ def create_world_map(
         plt.savefig(output_file, dpi=dpi, bbox_inches=output_bbox, facecolor=save_facecolor)
     if show_plot: plt.show()
     else: plt.close(fig)
+    print(f"Saved: {output_file}")
 
 """
 ISO_COLUMN

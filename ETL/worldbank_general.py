@@ -24,8 +24,6 @@ INDICATORS = [  'NY.GDP.MKTP.CD',
                 'IT.CEL.SETS.P2',
                 'SI.POV.GINI']
 
-INDICATORS = ["BX.KLT.DINV.CD.WD"]
-
 SCHEMA = "worldbank"
 TABLE = "data"
 engine = sa.create_engine(s.connection_string, fast_executemany=True)
@@ -63,6 +61,8 @@ for INDICATOR in INDICATORS:
     df = df[df["year"].notna()]
     df = df[df["value"].notna()]
     df = df.reset_index(drop=True)
+    
+    print(len(df))
     with engine.begin() as conn:
         conn.execute(
             sa.text(f"""
