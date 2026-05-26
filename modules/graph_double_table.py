@@ -19,9 +19,6 @@ TEXT_COLOR = "#F8FAFC"
 MUTED_COLOR = "#94A3B8"
 GRID_COLOR = "#243041"
 
-LEFT_COLOR = "#22C55E"
-RIGHT_COLOR = "#EF4444"
-
 TITLE_FONT_SIZE = 30
 SUBTITLE_FONT_SIZE = 17
 PANEL_TITLE_FONT_SIZE = 20
@@ -92,7 +89,6 @@ def draw_panel(
     height,
     title,
     color,
-    direction_symbol,
     top_n,
     label_col,
     flag_col,
@@ -114,14 +110,7 @@ def draw_panel(
         facecolor=CARD_COLOR,
         transform=fig.transFigure)
     fig.patches.append(panel)
-    fig.text(
-        x0 + 0.02,
-        y0 + height - 0.065,
-        title,
-        fontsize=PANEL_TITLE_FONT_SIZE,
-        weight="bold",
-        color=color,
-        ha="left")
+    fig.text(x0 + 0.02, y0 + height - 0.065, title,fontsize=PANEL_TITLE_FONT_SIZE, weight="bold", color=color, ha="left")
     row_top = y0 + height - 0.12
     row_gap = (height - 0.1) / top_n
     for i, (_, row) in enumerate(data.iterrows(), start=1):
@@ -165,7 +154,7 @@ def draw_panel(
             fig.text(
                 x0 + width - CHANGE_X_OFFSET_FROM_RIGHT,
                 y,
-                f"{direction_symbol}{abs(int(row[change_col]))}",
+                f"{row[change_col]}",
                 fontsize=CHANGE_FONT_SIZE,
                 weight="bold",
                 color=color,
@@ -188,10 +177,10 @@ def create_double_table_chart(
     right_value_col,
     change_col,
     top_n=10,
-    left_direction_symbol="+",
-    right_direction_symbol="-",
     left_value_prefix="#",
     right_value_prefix="#",
+    left_color = "#22C55E",
+    right_color = "#EF4444", 
     logo_path=None,
     flags_dir=None,):
 
@@ -211,8 +200,7 @@ def create_double_table_chart(
         width=PANEL_WIDTH,
         height=PANEL_HEIGHT,
         title=left_panel_title,
-        color=LEFT_COLOR,
-        direction_symbol=left_direction_symbol,
+        color=left_color,
         top_n=top_n,
         label_col=label_col,
         flag_col=flag_col,
@@ -231,8 +219,7 @@ def create_double_table_chart(
         width=PANEL_WIDTH,
         height=PANEL_HEIGHT,
         title=right_panel_title,
-        color=RIGHT_COLOR,
-        direction_symbol=right_direction_symbol,
+        color=right_color,
         top_n=top_n,
         label_col=label_col,
         flag_col=flag_col,

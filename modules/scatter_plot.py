@@ -35,7 +35,7 @@ DEFAULT_STYLE = {
     "footer_left_x": 0.08,
     "footer_right_x": 0.88,
     "footer_y": 0.055,
-    "logo_x": 0.81,
+    "logo_x": 0.799,
     "logo_y": 0.86,
     "logo_zoom": 0.07,
     "logo_alpha": 0.9,}

@@ -13,7 +13,7 @@ from scatter_plot import create_scatter_chart
 
 # ============================================================
 
-for atribute in ('pages','users','articles','edits','active_users','admins'):
+for atribute in ('pages','users'):
     print(atribute)
 
     query = """SELECT 
