@@ -32,7 +32,7 @@ LEFT_DIRECTION_SYMBOL = ''
 RIGHT_DIRECTION_SYMBOL = ''
 
 query = f"""
-        SELECT  D.[iso3_code] AS [country_id] ,
+        SELECT  D.[iso2_code] AS [country_id] ,
                 [name] as [country_name],
                 ROUND(D.[value], 1) AS [median_age]
         FROM [World_Data_Atlas].[un].[data] as D
