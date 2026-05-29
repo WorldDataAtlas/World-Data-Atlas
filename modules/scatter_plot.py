@@ -24,9 +24,7 @@ DEFAULT_STYLE = {
     "footer_font_size": 13,
     "label_font_size": 9,
     "point_alpha": 0.72,
-    "point_size": 55,
     "point_edge_color": "#F8FAFC",
-    "point_edge_width": 0.35,
     "axes_position": [0.08, 0.16, 0.80, 0.66],
     "title_x": 0.08,
     "title_y": 0.93,
@@ -80,6 +78,9 @@ def create_scatter_chart(
     point_color="#60A5FA",
     label_offset_x=1.06,
     label_offset_y=1.04,
+    point_edge_width=0.35,
+    point_size=55,
+    color_col=None,
     show_labels=True,):
 
     style = DEFAULT_STYLE.copy()
@@ -96,7 +97,13 @@ def create_scatter_chart(
     style_axis(ax, style)
     if x_log: ax.set_xscale("log")
     if y_log: ax.set_yscale("log")
-    ax.scatter(plot_df[x_col], plot_df[y_col], s=style["point_size"], color=point_color, alpha=style["point_alpha"], edgecolors=style["point_edge_color"], linewidths=style["point_edge_width"])
+    if color_col is None:
+        ax.scatter(plot_df[x_col],plot_df[y_col],s=point_size,color=point_color,alpha=style["point_alpha"],edgecolors=style["point_edge_color"],linewidths=point_edge_width)
+    else:
+        scatter = ax.scatter(plot_df[x_col],plot_df[y_col],c=plot_df[color_col],cmap="plasma",s=point_size,alpha=style["point_alpha"],edgecolors=style["point_edge_color"],linewidths=point_edge_width,)
+        cbar = fig.colorbar(scatter, ax=ax)
+        cbar.ax.tick_params(colors=style["muted_color"])
+        cbar.outline.set_edgecolor(style["grid_color"])
     if x_min is not None or x_max is not None: ax.set_xlim(x_min, x_max)
     if y_min is not None or y_max is not None: ax.set_ylim(y_min, y_max)
     ax.set_xlabel(x_label, color=style["muted_color"], fontsize=style["axis_font_size"])
