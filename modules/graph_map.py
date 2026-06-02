@@ -91,11 +91,13 @@ def create_world_map(
     logo_y=0.08,
     logo_zoom=0.08,
     logo_alpha=0.9,
+    continent_only = "Europe",
     world_url="https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip"):
 
     if antarctica_names is None: antarctica_names = ["Antarctica"]
     plt.rcParams["font.family"] = font_family
     world = gpd.read_file(world_url)
+    if continent_only is not None: world = world[world["CONTINENT"] == continent_only]
     world = world.to_crs("+proj=robin")
     if remove_antarctica: world = world[~world["ADMIN"].isin(antarctica_names)]
     df = pd.DataFrame([{iso_column: iso, value_column: value} for iso, value in highlight_countries.items()])
