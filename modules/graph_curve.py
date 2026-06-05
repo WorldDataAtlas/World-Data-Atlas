@@ -32,12 +32,10 @@ DEFAULT_STYLE = {
     "footer_left_x": 0.08,
     "footer_right_x": 0.88,
     "footer_y": 0.055,
-    "legend_location": "upper right",
     "logo_x": 0.80,
     "logo_y": 0.86,
     "logo_zoom": 0.07,
-    "logo_alpha": 0.9,
-}
+    "logo_alpha": 0.9,}
 
 def add_logo(fig, logo_path, x, y, zoom, alpha):
     if logo_path is None or not os.path.exists(logo_path): return
@@ -77,7 +75,8 @@ def create_multi_line_chart(
     x_ticks=8,
     y_ticks=7,
     show_markers=True,
-    show_legend=True,):
+    show_legend=True,
+    legend_location= "upper right"):
 
     style = DEFAULT_STYLE.copy()
     if style_overrides: style.update(style_overrides)
@@ -106,7 +105,7 @@ def create_multi_line_chart(
     ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True, nbins=x_ticks))
     ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=y_ticks))
     if show_legend:
-        legend = ax.legend(loc=style["legend_location"], frameon=False, fontsize=style["legend_font_size"], labelcolor=style["text_color"])
+        legend = ax.legend(loc=legend_location, frameon=False, fontsize=style["legend_font_size"], labelcolor=style["text_color"])
         for text in legend.get_texts(): text.set_color(style["text_color"])
     fig.text(style["title_x"], style["title_y"], title, fontsize=style["title_font_size"], weight="bold", color=style["text_color"], ha="left")
     fig.text(style["subtitle_x"], style["subtitle_y"], subtitle, fontsize=style["subtitle_font_size"], color=style["muted_color"], ha="left")

@@ -24,8 +24,8 @@ LEFT_PANEL_TITLE=''
 RIGHT_PANEL_TITLE=''
 LABEL_COL=''
 FLAG_COL=''
-LEFT_VALUE_ID=''
-RIGHT_VALUE_ID=''
+LEFT_VALUE_ID = None
+RIGHT_VALUE_ID = None
 CHANGE_COL=''
 
 query = f"""
@@ -37,8 +37,8 @@ query = f"""
 
 engine = sa.create_engine(s.connection_string)
 df = pd.read_sql(query, engine)
-climbers = df[df["rank_change"] > 0].sort_values("rank_change",ascending=False)
-fallers = df[df["rank_change"] < 0].sort_values("rank_change",ascending=True)
+climbers = df.sort_values(CHANGE_COL,ascending=False).head(TOP_N)
+fallers = df.sort_values(CHANGE_COL,ascending=True).head(TOP_N)
 OUTPUT_DIR = BASE_DIR / "results"
 OUTPUT_DIR.mkdir(exist_ok=True)
 OUTPUT_FILE = OUTPUT_DIR / FILE_NAME

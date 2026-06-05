@@ -14,20 +14,44 @@ from graph_curve import create_multi_line_chart
 # ============================================================
 
 query = """
-
+    SELECT
+        D.[year] as year, 
+        D.[value] as value,
+        C.code_name AS series
+    FROM imf.[data] AS D
+    LEFT JOIN imf.api_dimension_codes C ON D.country = C.code_id AND C.codelist_id = 'CL_ER_COUNTRY_PUB'
+    WHERE D.dataflow_id = 'WEO' AND D.indicator = 'LUR' AND [value] IS NOT NULL AND C.code_name in ('G7','Euro Area (EA)','United States') AND D.[year]<2026
+    ORDER BY D.[year]
         """
 
-MAP_TITLE = ''
-MAP_SUBTITLE = "World, 1960 - 2024"
-MAP_SOURCE = ''
-FILE_NAME = '.png'
-FOOTER_LEFT = ''
-FOOTER_RIGHT = ''
-SERIES_COL = ''
-Y_LABEL = ''
-series_config = [   {"source_value": "", "label": "", "color": "#60A5FA"},
-                    {"source_value": "", "label": "", "color": "#F472B6"},
-                    {"source_value": "", "label": "", "color": "#22C55E"}]
+MAP_TITLE = "Unemployment Rate"
+MAP_SUBTITLE = "G7, Euro Area and United States, 1980–2025"
+MAP_SOURCE = "Source: IMF World Economic Outlook (WEO)"
+FILE_NAME = "weo_unemployment_g7_euro_area_usa.png"
+FOOTER_LEFT = "Indicator: LUR (Unemployment rate, % of labor force)"
+FOOTER_RIGHT = "Data: IMF WEO"
+SERIES_COL = "series"
+Y_LABEL = "Unemployment rate (%)"
+
+series_config = [
+    {
+        "source_value": "G7",
+        "label": "G7",
+        "color": "#60A5FA"
+    },
+    {
+        "source_value": "Euro Area (EA)",
+        "label": "Euro Area",
+        "color": "#F472B6"
+    },
+    {
+        "source_value": "United States",
+        "label": "United States",
+        "color": "#22C55E"
+    }
+]
+
+
 
 # ============================================================
 

@@ -23,6 +23,8 @@ DEFAULT_STYLE = {
     "tick_font_size": 12,
     "footer_font_size": 13,
     "label_font_size": 9,
+    "legend_font_size": 12,
+    "legend_location": "upper right",
     "point_alpha": 0.72,
     "point_edge_color": "#F8FAFC",
     "axes_position": [0.08, 0.16, 0.80, 0.66],
@@ -36,7 +38,7 @@ DEFAULT_STYLE = {
     "logo_x": 0.799,
     "logo_y": 0.86,
     "logo_zoom": 0.07,
-    "logo_alpha": 0.9,}
+    "logo_alpha": 0.9}
 
 def add_logo(fig, logo_path, x, y, zoom, alpha):
     if logo_path is None or not os.path.exists(logo_path): return
@@ -81,7 +83,9 @@ def create_scatter_chart(
     point_edge_width=0.35,
     point_size=55,
     color_col=None,
-    show_labels=True,):
+    category_color_map=None,
+    show_color_legend=True,
+    show_labels=True):
 
     style = DEFAULT_STYLE.copy()
     if style_overrides: style.update(style_overrides)
@@ -98,9 +102,24 @@ def create_scatter_chart(
     if x_log: ax.set_xscale("log")
     if y_log: ax.set_yscale("log")
     if color_col is None:
-        ax.scatter(plot_df[x_col],plot_df[y_col],s=point_size,color=point_color,alpha=style["point_alpha"],edgecolors=style["point_edge_color"],linewidths=point_edge_width)
+        ax.scatter(
+            plot_df[x_col],
+            plot_df[y_col],
+            s=point_size,
+            color=point_color,
+            alpha=style["point_alpha"],
+            edgecolors=style["point_edge_color"],
+            linewidths=point_edge_width)
+    elif category_color_map is not None:
+        categories = plot_df[color_col].dropna().unique()
+        for category in categories:
+            subset = plot_df[plot_df[color_col] == category]
+            ax.scatter(subset[x_col], subset[y_col], s=point_size, color=category_color_map.get(category, point_color), alpha=style["point_alpha"], edgecolors=style["point_edge_color"], linewidths=point_edge_width, label=str(category))
+        if show_color_legend:
+            legend = ax.legend(loc=style.get("legend_location", "upper right"), frameon=False, fontsize=style.get("legend_font_size", 12))
+            for text in legend.get_texts(): text.set_color(style["text_color"])
     else:
-        scatter = ax.scatter(plot_df[x_col],plot_df[y_col],c=plot_df[color_col],cmap="plasma",s=point_size,alpha=style["point_alpha"],edgecolors=style["point_edge_color"],linewidths=point_edge_width,)
+        scatter = ax.scatter(plot_df[x_col], plot_df[y_col], c=plot_df[color_col], cmap="plasma", s=point_size, alpha=style["point_alpha"], edgecolors=style["point_edge_color"], linewidths=point_edge_width)
         cbar = fig.colorbar(scatter, ax=ax)
         cbar.ax.tick_params(colors=style["muted_color"])
         cbar.outline.set_edgecolor(style["grid_color"])
@@ -119,9 +138,9 @@ def create_scatter_chart(
         for _, row in plot_df.iterrows():
             label_x = row[x_col] * label_offset_x if x_log else row[x_col]
             label_y = row[y_col] * label_offset_y if y_log else row[y_col]
-            text_obj = ax.text(label_x,label_y,str(row["label"]),fontsize=style["label_font_size"],color=style["text_color"],ha="left",va="bottom")
+            text_obj = ax.text(label_x, label_y, str(row["label"]), fontsize=style["label_font_size"], color=style["text_color"], ha="left", va="bottom")
             texts.append(text_obj)
-        adjust_text(texts,ax=ax,arrowprops=dict(arrowstyle="-",color=style["muted_color"],lw=0.5,alpha=0.45,))
+        adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle="-", color=style["muted_color"],lw=0.5, alpha=0.45))
     fig.text(style["title_x"], style["title_y"], title, fontsize=style["title_font_size"], weight="bold", color=style["text_color"], ha="left")
     fig.text(style["subtitle_x"], style["subtitle_y"], subtitle, fontsize=style["subtitle_font_size"], color=style["muted_color"], ha="left")
     fig.text(style["footer_left_x"], style["footer_y"], footer_left, fontsize=style["footer_font_size"], color=style["muted_color"], ha="left")
