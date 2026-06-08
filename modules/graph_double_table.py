@@ -91,29 +91,14 @@ def draw_panel(
     show_flags=True,
     flags_dir=None,):
 
-    panel = FancyBboxPatch(
-        (x0, y0),
-        width,
-        height,
-        boxstyle="round,pad=0.012,rounding_size=0.025",
-        linewidth=1.2,
-        edgecolor=GRID_COLOR,
-        facecolor=CARD_COLOR,
-        transform=fig.transFigure)
+    panel = FancyBboxPatch((x0, y0), width, height, boxstyle="round,pad=0.012,rounding_size=0.025", linewidth=1.2, edgecolor=GRID_COLOR, facecolor=CARD_COLOR, transform=fig.transFigure)
     fig.patches.append(panel)
     fig.text(x0 + 0.02, y0 + height - 0.065, title,fontsize=PANEL_TITLE_FONT_SIZE, weight="bold", color=color, ha="left")
     row_top = y0 + height - 0.12
     row_gap = (height - 0.1) / top_n
     for i, (_, row) in enumerate(data.iterrows(), start=1):
         y = row_top - (i - 1) * row_gap
-        fig.text(
-            x0 + ROW_NUMBER_X_OFFSET,
-            y,
-            f"{i:02d}",
-            fontsize=ROW_NUMBER_FONT_SIZE,
-            color=MUTED_COLOR,
-            ha="left",
-            va="center")
+        fig.text(x0 + ROW_NUMBER_X_OFFSET, y, f"{i:02d}", fontsize=ROW_NUMBER_FONT_SIZE, color=MUTED_COLOR, ha="left", va="center")
         if show_flags and flags_dir is not None and flag_col and flag_col in row.index:
             flag_path = get_flag_path(row[flag_col], flags_dir)
             if flag_path is not None:
@@ -122,35 +107,12 @@ def draw_panel(
                 ab = AnnotationBbox(imagebox, (x0 + FLAG_X_OFFSET, y), xycoords=fig.transFigure, frameon=False, box_alignment=(0.5, 0.5))
                 fig.add_artist(ab)
         if label_col and label_col in row.index:
-            fig.text(
-                x0 + COUNTRY_X_OFFSET,
-                y,
-                row[label_col],
-                fontsize=COUNTRY_FONT_SIZE,
-                weight="bold",
-                color=TEXT_COLOR,
-                ha="left",
-                va="center")
+            fig.text( x0 + COUNTRY_X_OFFSET, y, row[label_col], fontsize=COUNTRY_FONT_SIZE, weight="bold", color=TEXT_COLOR, ha="left", va="center")
         if left_value_col and right_value_col:
             if pd.notna(row[left_value_col]) and pd.notna(row[right_value_col]):
-                fig.text(
-                    x0 + width - RANK_X_OFFSET_FROM_RIGHT,
-                    y,
-                    f"{left_value_prefix}{int(row[left_value_col])} → {right_value_prefix}{int(row[right_value_col])}",
-                    fontsize=RANK_FONT_SIZE,
-                    color=MUTED_COLOR,
-                    ha="right",
-                    va="center")
+                fig.text( x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, f"{left_value_prefix}{int(row[left_value_col])} → {right_value_prefix}{int(row[right_value_col])}", fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
         if change_col and change_col in row.index:
-            fig.text(
-                x0 + width - CHANGE_X_OFFSET_FROM_RIGHT,
-                y,
-                f"{row[change_col]}",
-                fontsize=CHANGE_FONT_SIZE,
-                weight="bold",
-                color=color,
-                ha="right",
-                va="center")
+            fig.text(x0 + width - CHANGE_X_OFFSET_FROM_RIGHT, y, f"{row[change_col]}", fontsize=CHANGE_FONT_SIZE, weight="bold", color=color, ha="right", va="center")
 
 def create_double_table_chart(
     left_data,

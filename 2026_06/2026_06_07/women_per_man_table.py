@@ -13,11 +13,11 @@ from graph_double_table import create_double_table_chart
 
 # ============================================================
 
-"""Qatar has only ~40 women per 100 men.
+"""Most people would guess China. Wrong.
 
-Latvia has ~116.
+Qatar has only ~40 women per 100 men, while Latvia has ~116.
 
-The difference isn't biology—it's migration.
+The reason? Massive male labor migration into Gulf countries.
 
 Source: UN Population Data
 
