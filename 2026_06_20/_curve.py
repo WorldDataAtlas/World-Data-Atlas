@@ -47,6 +47,7 @@ create_multi_line_chart(
     series_config=series_config,
     title=MAP_TITLE,
     subtitle=MAP_SUBTITLE,
+    marker_size=15,
     y_label=Y_LABEL,
     footer_left=FOOTER_LEFT,
     footer_right=FOOTER_RIGHT,

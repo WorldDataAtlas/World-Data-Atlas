@@ -24,7 +24,6 @@ DEFAULT_STYLE = {
     "footer_font_size": 13,
     "label_font_size": 9,
     "legend_font_size": 12,
-    "legend_location": "upper right",
     "point_alpha": 0.72,
     "point_edge_color": "#F8FAFC",
     "axes_position": [0.08, 0.16, 0.80, 0.66],
@@ -85,6 +84,7 @@ def create_scatter_chart(
     color_col=None,
     category_color_map=None,
     show_color_legend=True,
+    legend_location= "upper right",
     show_labels=True):
 
     style = DEFAULT_STYLE.copy()
@@ -116,7 +116,7 @@ def create_scatter_chart(
             subset = plot_df[plot_df[color_col] == category]
             ax.scatter(subset[x_col], subset[y_col], s=point_size, color=category_color_map.get(category, point_color), alpha=style["point_alpha"], edgecolors=style["point_edge_color"], linewidths=point_edge_width, label=str(category))
         if show_color_legend:
-            legend = ax.legend(loc=style.get("legend_location", "upper right"), frameon=False, fontsize=style.get("legend_font_size", 12))
+            legend = ax.legend(loc=legend_location, frameon=False, fontsize=style.get("legend_font_size", 12))
             for text in legend.get_texts(): text.set_color(style["text_color"])
     else:
         scatter = ax.scatter(plot_df[x_col], plot_df[y_col], c=plot_df[color_col], cmap="plasma", s=point_size, alpha=style["point_alpha"], edgecolors=style["point_edge_color"], linewidths=point_edge_width)

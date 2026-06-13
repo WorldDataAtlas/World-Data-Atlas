@@ -22,7 +22,6 @@ DEFAULT_STYLE = {
     "legend_font_size": 13,
     "footer_font_size": 13,
     "line_width": 3.2,
-    "marker_size": 15,
     "marker_alpha": 0.85,
     "axes_position": [0.08, 0.16, 0.80, 0.66],
     "title_x": 0.08,
@@ -76,6 +75,7 @@ def create_multi_line_chart(
     y_ticks=7,
     show_markers=True,
     show_legend=True,
+    marker_size=15,
     legend_location= "upper right"):
 
     style = DEFAULT_STYLE.copy()
@@ -93,7 +93,7 @@ def create_multi_line_chart(
         if subset.empty: continue
         ax.plot(subset[x_col],subset[y_col],color=color,linewidth=item.get("line_width", style["line_width"]),label=label,solid_capstyle="round")
         if show_markers:
-            ax.scatter(subset[x_col], subset[y_col], color=color, s=item.get("marker_size", style["marker_size"]), alpha=item.get("marker_alpha", style["marker_alpha"]), zorder=5)
+            ax.scatter(subset[x_col], subset[y_col], color=color, s=marker_size, alpha=item.get("marker_alpha", style["marker_alpha"]), zorder=5)
     start_year = int(df[x_col].min())
     end_year = int(df[x_col].max())
     ax.set_xlim(start_year, end_year + x_padding_right)

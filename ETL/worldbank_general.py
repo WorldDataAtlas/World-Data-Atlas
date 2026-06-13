@@ -4,7 +4,7 @@ import sqlalchemy as sa
 import settings as s
 
 INDICATOR = ""
-INDICATORS = [  'NY.GDP.PCAP.PP.KD']
+INDICATORS = ['110200','1102000','110210','1102100', '3.0.Gini','3.0.Gini_nozero']
 
 SCHEMA = "worldbank"
 TABLE = "data"

@@ -1,10 +1,12 @@
+import time
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import pandas as pd
 import sqlalchemy as sa
-import time
 import settings as s
 
-INDICATOR_IDS = [54]
+INDICATOR_IDS = [91]
 
 START_YEAR = 1900
 END_YEAR = 2035
@@ -12,12 +14,13 @@ END_YEAR = 2035
 BASE_URL = "https://population.un.org/dataportalapi/api/v1"
 TOKEN = s.un_token
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
-SCHEMA, TABLE = "un", "data"
-REQUEST_TIMEOUT = 10
+SCHEMA = "un"
+TABLE = "data"
+REQUEST_TIMEOUT = 15
 MAX_RETRIES = 3
-BATCH_LOCATION_SIZE = 25
-SQL_CHUNKSIZE = 5000
-
+BATCH_LOCATION_SIZE = 50
+MAX_WORKERS = 8
+SQL_CHUNKSIZE = 20000
 session = requests.Session()
 session.headers.update(HEADERS)
 
@@ -30,31 +33,30 @@ def safe_get(row, *keys):
 def fetch_all_pages(url):
     rows = []
     while url:
-        success = False
+        response = None
         for attempt in range(1, MAX_RETRIES + 1):
             try:
                 response = session.get(url, timeout=REQUEST_TIMEOUT)
                 if response.status_code == 404:
                     print(f"404 skip: {url}")
                     return rows
+                if response.status_code == 401: raise Exception("Unauthorized - invalid or expired UN token")
                 if response.status_code in [429, 500, 502, 503, 504]:
-                    wait = attempt * 3
+                    wait = attempt
                     print(f"{response.status_code} retry {attempt}/{MAX_RETRIES}, waiting {wait}s")
                     time.sleep(wait)
                     continue
-                if response.status_code == 401: raise Exception("Unauthorized - invalid or expired UN token")
                 response.raise_for_status()
-                success = True
                 break
             except requests.exceptions.Timeout:
-                wait = attempt * 3
+                wait = attempt
                 print(f"TIMEOUT retry {attempt}/{MAX_RETRIES}, waiting {wait}s")
                 time.sleep(wait)
             except requests.exceptions.RequestException as e:
-                wait = attempt * 3
+                wait = attempt
                 print(f"REQUEST ERROR retry {attempt}/{MAX_RETRIES}: {e}")
                 time.sleep(wait)
-        if not success:
+        else:
             print(f"FAILED URL, skipping: {url}")
             return rows
         payload = response.json()
@@ -67,15 +69,17 @@ def fetch_locations():
     return fetch_all_pages(url)
 
 def fetch_indicator_location_data(indicator_id, location_id):
-    url = (
-        f"{BASE_URL}/data/indicators/{indicator_id}"
-        f"/locations/{location_id}"
-        f"/start/{START_YEAR}"
-        f"/end/{END_YEAR}/"
-        f"?format=json")
+    url = (f"{BASE_URL}/data/indicators/{indicator_id}/locations/{location_id}/start/{START_YEAR}/end/{END_YEAR}/?format=json")
     return fetch_all_pages(url)
 
+def fetch_one_location(indicator_id, location):
+    location_id = location["id"]
+    location_name = location.get("name")
+    rows = fetch_indicator_location_data(indicator_id=indicator_id, location_id=location_id)
+    return {"indicator_id": indicator_id, "location_id": location_id, "location_name": location_name, "rows": rows}
+
 def normalize_indicator_rows(raw_rows):
+    if not raw_rows: return pd.DataFrame()
     rows = []
     for item in raw_rows:
         rows.append({
@@ -94,13 +98,12 @@ def normalize_indicator_rows(raw_rows):
             "age_id": safe_get(item, "ageId"),
             "age_name": safe_get(item, "age", "ageName"),
             "category_id": safe_get(item, "categoryId"),
-            "category_name": safe_get(item, "category", "categoryName"),})
+            "category_name": safe_get(item, "category", "categoryName")})
     df = pd.DataFrame(rows)
-    if df.empty: return df
-    int_cols = ["location_id", "indicator_id", "year", "variant_id", "sex_id", "age_id", "category_id",]
+    int_cols = ["location_id", "indicator_id", "year", "variant_id", "sex_id", "age_id", "category_id"]
     for col in int_cols: df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
-    df = df[df["indicator_id"].notna()& df["year"].notna()& df["value"].notna()].reset_index(drop=True)
+    df = df[df["indicator_id"].notna() & df["year"].notna() & df["value"].notna()].reset_index(drop=True)
     return df
 
 def insert_batch(df, engine):
@@ -111,74 +114,50 @@ def insert_batch(df, engine):
 def chunk_list(values, chunk_size):
     for i in range(0, len(values), chunk_size): yield values[i:i + chunk_size]
 
-engine = sa.create_engine(s.connection_string, fast_executemany=True)
-locations_raw = fetch_locations()
-locations_selected = [
-    item for item in locations_raw
-    if item.get("id") is not None
-    and item.get("iso3") is not None]
+def delete_old_data(engine):
+    with engine.begin() as conn:
+        for indicator_id in INDICATOR_IDS:
+            conn.execute(
+                sa.text(f"DELETE FROM {SCHEMA}.{TABLE} WHERE indicator_id = :indicator_id"), {"indicator_id": indicator_id})
 
-print(f"Locations selected: {len(locations_selected)}")
-
-with engine.begin() as conn:
+def main():
+    start_time = datetime.now()
+    engine = sa.create_engine(s.connection_string, fast_executemany=True)
+    locations_raw = fetch_locations()
+    locations_selected = [item for item in locations_raw if item.get("id") is not None and item.get("iso3") is not None]
+    print(f"Locations selected: {len(locations_selected)}")
+    delete_old_data(engine)
+    print("Old data deleted.")
+    total_inserted, errors = 0, []
     for indicator_id in INDICATOR_IDS:
-        conn.execute(sa.text(f"DELETE FROM {SCHEMA}.{TABLE} WHERE indicator_id = :indicator_id"), {"indicator_id": indicator_id})
-print("Old data deleted.")
-
-total_inserted,errors  = 0, []
-
-for indicator_id in INDICATOR_IDS:
-    print(f"\n=== Indicator {indicator_id} ===")
-    for batch_number, location_batch in enumerate(
-        chunk_list(locations_selected, BATCH_LOCATION_SIZE),
-        start=1):
-        print(f"\nBatch {batch_number} | locations: {len(location_batch)}")
-        batch_raw_rows = []
-        for loc in location_batch:
-            location_id = loc["id"]
-            location_name = loc.get("name")
-            try:
-                raw_rows = fetch_indicator_location_data(indicator_id=indicator_id, location_id=location_id)
-                print(f"{location_id} | {location_name} | rows: {len(raw_rows)}")
-                batch_raw_rows.extend(raw_rows)
-            except Exception as e:
-                error = {"indicator_id": indicator_id, "location_id": location_id, "location_name": location_name, "error": str(e)}
-                errors.append(error)
-                print(f"ERROR: {error}")
-        df_batch = normalize_indicator_rows(batch_raw_rows)
-        inserted = insert_batch(df_batch, engine)
-        total_inserted += inserted
-
-        print(f"Inserted batch rows: {inserted}")
-        print(f"Total inserted: {total_inserted}")
-
-print("\nDONE")
-print(f"Total inserted: {total_inserted}")
-print(f"Errors: {len(errors)}")
-
-if errors:
-    print("\nERROR SAMPLE:")
-    for error in errors[:20]: print(error)
-
-"""
-CREATE TABLE un.data (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    location_id INT NULL,
-    location_name NVARCHAR(MAX),
-    iso2_code NVARCHAR(20),
-    iso3_code NVARCHAR(30),
-    indicator_id INT NOT NULL,
-    indicator_name NVARCHAR(MAX),
-    [year] INT NOT NULL,
-    [value] FLOAT NULL,
-    variant_id INT NULL,
-    variant_name NVARCHAR(MAX),
-    sex_id INT NULL,
-    sex_name NVARCHAR(MAX),
-    age_id INT NULL,
-    age_name NVARCHAR(MAX),
-    category_id INT NULL,
-    category_name NVARCHAR(MAX),
-    created_at DATETIME2 NOT NULL DEFAULT GETDATE()
-);
-"""
+        print(f"\n=== Indicator {indicator_id} ===")
+        for batch_number, location_batch in enumerate(
+            chunk_list(locations_selected, BATCH_LOCATION_SIZE),
+            start=1):
+            print(f"\nBatch {batch_number} | locations: {len(location_batch)}")
+            batch_raw_rows = []
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                futures = [executor.submit(fetch_one_location, indicator_id, location) for location in location_batch]
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        print(f'{result["location_id"]} | {result["location_name"]} | rows: {len(result["rows"])}')
+                        batch_raw_rows.extend(result["rows"])
+                    except Exception as e:
+                        error = {"indicator_id": indicator_id, "error": str(e)}
+                        errors.append(error)
+                        print(f"ERROR: {error}")
+            df_batch = normalize_indicator_rows(batch_raw_rows)
+            inserted = insert_batch(df_batch, engine)
+            total_inserted += inserted
+            print(f"Inserted batch rows: {inserted}")
+            print(f"Total inserted: {total_inserted}")
+    elapsed = datetime.now() - start_time
+    print("\nDONE")
+    print(f"Total inserted: {total_inserted}")
+    print(f"Errors: {len(errors)}")
+    print(f"Elapsed: {elapsed}")
+    if errors:
+        print("\nERROR SAMPLE:")
+        for error in errors[:20]: print(error)
+if __name__ == "__main__": main()
