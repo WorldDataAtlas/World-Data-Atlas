@@ -6,7 +6,7 @@ import pandas as pd
 import sqlalchemy as sa
 import settings as s
 
-INDICATOR_IDS = [91]
+INDICATOR_IDS = [6,7]
 
 START_YEAR = 1900
 END_YEAR = 2035
@@ -19,7 +19,7 @@ TABLE = "data"
 REQUEST_TIMEOUT = 15
 MAX_RETRIES = 3
 BATCH_LOCATION_SIZE = 50
-MAX_WORKERS = 8
+MAX_WORKERS = 5
 SQL_CHUNKSIZE = 20000
 session = requests.Session()
 session.headers.update(HEADERS)
@@ -161,3 +161,26 @@ def main():
         print("\nERROR SAMPLE:")
         for error in errors[:20]: print(error)
 if __name__ == "__main__": main()
+
+"""
+CREATE TABLE [un].[data](
+	[id] [bigint] IDENTITY(1,1) NOT NULL,
+	[location_id] [int] NULL,
+	[location_name] [nvarchar](max) NULL,
+	[iso2_code] [nvarchar](20) NULL,
+	[iso3_code] [nvarchar](30) NULL,
+	[indicator_id] [int] NOT NULL,
+	[indicator_name] [nvarchar](max) NULL,
+	[year] [int] NOT NULL,
+	[value] [float] NULL,
+	[variant_id] [int] NULL,
+	[variant_name] [nvarchar](max) NULL,
+	[sex_id] [int] NULL,
+	[sex_name] [nvarchar](max) NULL,
+	[age_id] [int] NULL,
+	[age_name] [nvarchar](max) NULL,
+	[category_id] [int] NULL,
+	[category_name] [nvarchar](max) NULL,
+	[created_at] [datetime2](7) NOT NULL
+)
+"""
