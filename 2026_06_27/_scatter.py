@@ -17,19 +17,29 @@ query = """
 
         """
 
-FILE_NAME = ""
+FILE_NAME = ".png"
+
 X_COL = ""
 Y_COL = ""
+
 MAP_TITLE = ""
 MAP_SUBTITLE = ""
 X_LABEL = ""
 Y_LABEL = ""
 FOOTER_LEFT = ""
 FOOTER_RIGHT = ""
-POINT_COLOR = "#60A5FA"
-SHOW_LABELS = True
-X_LOG = True
-Y_LOG = True
+POINT_COLOR = "#B7FF00"
+SHOW_LABELS = False
+X_LOG = False
+Y_LOG = False
+POINT_SIZE = 66
+COLOR_COL = "continent"
+continent_color_map = {
+    "Africa": "#F97316",
+    "Europe": "#0000FF",
+    "Asia": "#22C55E",
+    "Americas": "#FF0000",
+    "Oceania": "#FFFFFF"}
 
 # ============================================================
 
@@ -51,5 +61,9 @@ create_scatter_chart(
     logo_path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..","Logos","4.png",)),
     x_log=X_LOG,
     y_log=Y_LOG,
+    color_col=COLOR_COL,
     show_labels=SHOW_LABELS,
+    point_size=POINT_SIZE,
+    legend_location = 'lower right',
+    category_color_map=continent_color_map,
     point_color=POINT_COLOR)

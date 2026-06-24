@@ -89,7 +89,8 @@ def draw_panel(
     left_value_prefix="#",
     right_value_prefix="#",
     show_flags=True,
-    flags_dir=None,):
+    flags_dir=None,
+    decimal_places=2):
 
     panel = FancyBboxPatch((x0, y0), width, height, boxstyle="round,pad=0.012,rounding_size=0.025", linewidth=1.2, edgecolor=GRID_COLOR, facecolor=CARD_COLOR, transform=fig.transFigure)
     fig.patches.append(panel)
@@ -112,7 +113,10 @@ def draw_panel(
             if pd.notna(row[left_value_col]) and pd.notna(row[right_value_col]):
                 fig.text( x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, f"{left_value_prefix}{int(row[left_value_col])} → {right_value_prefix}{int(row[right_value_col])}", fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
         if change_col and change_col in row.index:
-            fig.text(x0 + width - CHANGE_X_OFFSET_FROM_RIGHT, y, f"{row[change_col]}", fontsize=CHANGE_FONT_SIZE, weight="bold", color=color, ha="right", va="center")
+            value = row[change_col]
+            if pd.notna(value): value_text = f"{value:.{decimal_places}f}"
+            else: value_text = ""
+            fig.text(x0 + width - CHANGE_X_OFFSET_FROM_RIGHT,y,value_text,fontsize=CHANGE_FONT_SIZE,weight="bold",color=color,ha="right",va="center")
 
 def create_double_table_chart(
     left_data,
@@ -133,9 +137,10 @@ def create_double_table_chart(
     left_value_prefix="#",
     right_value_prefix="#",
     left_color = "#22C55E",
-    right_color = "#EF4444", 
+    right_color = "#EF4444",
     logo_path=None,
-    flags_dir=None,):
+    flags_dir=None,
+    decimal_places=2):
 
     plt.rcParams["font.family"] = FONT_FAMILY
     fig = plt.figure(figsize=(FIG_WIDTH, FIG_HEIGHT), dpi=DPI)
@@ -163,7 +168,8 @@ def create_double_table_chart(
         left_value_prefix=left_value_prefix,
         right_value_prefix=right_value_prefix,
         show_flags=SHOW_FLAGS,
-        flags_dir=flags_dir)
+        flags_dir=flags_dir,
+        decimal_places=decimal_places)
     draw_panel(
         fig=fig,
         data=right_data,
@@ -182,7 +188,8 @@ def create_double_table_chart(
         left_value_prefix=left_value_prefix,
         right_value_prefix=right_value_prefix,
         show_flags=SHOW_FLAGS,
-        flags_dir=flags_dir)
+        flags_dir=flags_dir,
+        decimal_places=decimal_places)
     fig.text(FOOTER_LEFT_X, FOOTER_Y, footer_left, fontsize=FOOTER_FONT_SIZE, color=MUTED_COLOR, ha="left")
     fig.text(FOOTER_RIGHT_X, FOOTER_Y, footer_right, fontsize=FOOTER_FONT_SIZE, color=MUTED_COLOR, ha="right")
     add_logo(fig, logo_path)

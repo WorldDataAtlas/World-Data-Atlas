@@ -59,9 +59,8 @@ create_double_table_chart(
     right_value_col=RIGHT_VALUE_ID,
     change_col=CHANGE_COL,
     top_n=TOP_N,
-    left_direction_symbol="+",
-    right_direction_symbol="-",
     left_value_prefix="#",
     right_value_prefix="#",
+    decimal_places=2,
     logo_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Logos", "4.png")),
     flags_dir=FLAGS_DIR)
