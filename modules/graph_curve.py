@@ -97,8 +97,8 @@ def create_multi_line_chart(
     start_year = int(df[x_col].min())
     end_year = int(df[x_col].max())
     ax.set_xlim(start_year, end_year + x_padding_right)
-    if y_min is None: y_min = max(0, df[y_col].min() * 0.85)
-    if y_max is None: y_max = df[y_col].max() * 1.12
+    if y_min is None: y_min = df[y_col].min() * 1.12 if df[y_col].min() < 0 else 0
+    if y_max is None: y_max = df[y_col].max() * 1.12   
     ax.set_ylim(y_min, y_max)
     ax.set_xlabel("")
     ax.set_ylabel(y_label, color=style["muted_color"], fontsize=style["axis_font_size"])

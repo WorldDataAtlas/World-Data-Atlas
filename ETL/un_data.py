@@ -6,10 +6,10 @@ import pandas as pd
 import sqlalchemy as sa
 import settings as s
 
-INDICATOR_IDS = [6,7]
+INDICATOR_IDS = [65]
 
 START_YEAR = 1900
-END_YEAR = 2035
+END_YEAR = 2050
 
 BASE_URL = "https://population.un.org/dataportalapi/api/v1"
 TOKEN = s.un_token
