@@ -4,7 +4,7 @@ import sqlalchemy as sa
 import settings as s
 
 INDICATOR = ""
-INDICATORS = ['110200','1102000','110210','1102100', '3.0.Gini','3.0.Gini_nozero']
+INDICATORS = ["PAY.TAX.TOT.TAX.RT.ZS"]
 
 SCHEMA = "worldbank"
 TABLE = "data"

@@ -1,0 +1,125 @@
+from pathlib import Path
+import sys
+import os
+import pandas as pd
+import sqlalchemy as sa
+BASE_DIR = Path(__file__).resolve().parent
+etl_path = (BASE_DIR.parent / "ETL").resolve()
+sys.path.insert(0, str(etl_path))
+import settings as s
+module_path = (BASE_DIR.parent / "modules").resolve()
+sys.path.insert(0, str(module_path))
+from scatter_plot import create_scatter_chart
+
+# ============================================================
+
+"""
+🌍 More births today, more workers tomorrow.
+
+Countries with higher fertility generally have far more working-age adults relative to their elderly population.
+
+Source: United Nations
+"""
+
+
+query = """
+    SELECT
+        AA.location_id,
+        AA.location_name,
+        AA.iso2_code,
+        AA.iso3_code,
+        CASE
+        WHEN AA.iso3_code IN (
+            'DZA','AGO','BEN','BWA','BFA','BDI','CPV','CMR','CAF','TCD','COM','COG','COD','CIV','DJI','EGY',
+            'GNQ','ERI','SWZ','ETH','GAB','GMB','GHA','GIN','GNB','KEN','LSO','LBR','LBY','MDG','MWI','MLI',
+            'MRT','MUS','MAR','MOZ','NAM','NER','NGA','RWA','STP','SEN','SYC','SLE','SOM','ZAF','SSD','SDN',
+            'TZA','TGO','TUN','UGA','ZMB','ZWE') THEN 'Africa'
+        WHEN AA.iso3_code IN (
+            'ALB','AND','AUT','BEL','BIH','BGR','BLR','CHE','CYP','CZE','DEU','DNK','ESP','EST','FIN','FRA',
+            'GBR','GRC','HRV','HUN','IRL','ISL','ITA','LIE','LTU','LUX','LVA','MDA','MKD','MLT','MNE','NLD',
+            'NOR','POL','PRT','ROU','RUS','SMR','SRB','SVK','SVN','SWE','UKR','MCO','XKX','IMN','GRL','GIB',
+            'FRO','CHI') THEN 'Europe'
+        WHEN AA.iso3_code IN (
+            'AFG','ARE','ARM','AZE','BHR','BGD','BRN','BTN','CHN','GEO','HKG','IDN','IND','IRN','IRQ','ISR',
+            'JOR','JPN','KAZ','KGZ','KHM','KOR','KWT','LAO','LBN','LKA','MAC','MDV','MMR','MNG','MYS','NPL',
+            'OMN','PAK','PHL','QAT','SAU','SGP','SYR','THA','TJK','TKM','TLS','TUR','UZB','VNM','YEM','PSE',
+            'NCL','PRK','MNP','GUM','ASM') THEN 'Asia'
+        WHEN AA.iso3_code IN (
+            'ARG','ATG','BHS','BLZ','BOL','BRA','BRB','CAN','CHL','COL','CRI','CUB','DMA','DOM','ECU','GRD',
+            'GTM','GUY','HND','HTI','JAM','KNA','LCA','MEX','NIC','PAN','PER','PRY','SLV','SUR','TTO','URY',
+            'USA','VCT','VEN','ABW','PRI','BMU','TCA','MAF','SXM','CYM','VGB','CUW','VIR') THEN 'Americas'
+        WHEN AA.iso3_code IN (
+            'AUS','FJI','FSM','KIR','MHL','NRU','NZL','PLW','PNG','SLB','TON','TUV','VUT','WSM','PYF') THEN 'Oceania'
+        ELSE 'Other' END AS continent,
+        MAX(CASE 
+                WHEN AA.indicator_id = 19 
+                THEN AA.value 
+            END) AS fertility_rate,
+        MAX(CASE 
+                WHEN AA.indicator_id = 85 AND AA.age_id = 1013
+                THEN AA.value 
+            END) AS potential_support_ratio
+    FROM [World_Data_Atlas].[un].[data] AS AA
+    LEFT JOIN [World_Data_Atlas].worldbank.entities AS ENT ON AA.iso2_code = ENT.iso2_code
+    WHERE AA.year = 2024 AND AA.variant_id = 4 AND AA.sex_id = 3 AND ENT.is_country = 1 AND AA.indicator_id IN (19, 85)
+    GROUP BY AA.location_id, AA.location_name, AA.iso2_code, AA.iso3_code, ENT.region_name
+    HAVING
+        MAX(CASE 
+                WHEN AA.indicator_id = 19 
+                THEN AA.value 
+            END) IS NOT NULL AND
+        MAX(CASE 
+                WHEN AA.indicator_id = 85 AND AA.age_id = 1013
+                THEN AA.value 
+            END) < 16
+    ORDER BY potential_support_ratio;
+        """
+
+FILE_NAME = "fertility_vs_potential_support_ratio_2024.png"
+X_COL = "fertility_rate"
+Y_COL = "potential_support_ratio"
+MAP_TITLE = "Fertility and Population Age Structure"
+MAP_SUBTITLE = "Countries, 2024"
+X_LABEL = "Fertility rate (children per woman)"
+Y_LABEL = "People aged 25–64 per person aged 65+"
+FOOTER_LEFT = "Potential support ratio, both sexes"
+FOOTER_RIGHT = "Source: United Nations"
+POINT_COLOR = "#B7FF00"
+SHOW_LABELS = False
+X_LOG = False
+Y_LOG = False
+POINT_SIZE = 66
+COLOR_COL = "continent"
+continent_color_map = {
+    "Africa": "#F97316",
+    "Europe": "#0000FF",
+    "Asia": "#22C55E",
+    "Americas": "#FF0000",
+    "Oceania": "#FFFFFF"}
+"#4B4B96"
+# ============================================================
+
+OUTPUT_DIR = BASE_DIR / "results"
+OUTPUT_FILE = OUTPUT_DIR / FILE_NAME
+engine = sa.create_engine(s.connection_string)
+df = pd.read_sql(query, engine)
+create_scatter_chart(
+    df=df,
+    output_file=OUTPUT_FILE,
+    x_col=X_COL,
+    y_col=Y_COL,
+    title=MAP_TITLE,
+    subtitle=MAP_SUBTITLE,
+    x_label=X_LABEL,
+    y_label=Y_LABEL,
+    footer_left=FOOTER_LEFT,
+    footer_right=FOOTER_RIGHT,
+    logo_path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..","Logos","4.png",)),
+    x_log=X_LOG,
+    y_log=Y_LOG,
+    color_col=COLOR_COL,
+    show_labels=SHOW_LABELS,
+    point_size=POINT_SIZE,
+    legend_location = 'lower right',
+    category_color_map=continent_color_map,
+    point_color=POINT_COLOR)

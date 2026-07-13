@@ -68,7 +68,7 @@ def create_multi_line_chart(
     footer_right,
     logo_path=None,
     style_overrides=None,
-    x_padding_right=7,
+    x_padding_right=1,
     y_min=None,
     y_max=None,
     x_ticks=8,

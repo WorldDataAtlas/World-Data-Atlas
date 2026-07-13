@@ -11,13 +11,8 @@ SCHEMA = "oecd"
 TABLE = "data"
 
 DATAFLOWS = [
-    "DSD_NAAG@DF_NAAG_I",          # GDP
-    "DSD_PPP@DF_PPP",              # PPP detailed results
-    "DSD_RHPI@DF_RHPI_ALL",        # House price indices
-    "DSD_RHPI_TARGET@DF_RHPI_TARGET", # Headline house price indicators
-    "DSD_PRICES@DF_PRICES_ALL",    # CPI / HICP COICOP 1999
-    "DSD_PRICES_COICOP2018@DF_PRICES_C2018_ALL", # CPI / HICP COICOP 2018
-]
+    "DSD_FUA_TRAN@DF_PT_ACCESS"
+    ]
 
 FIXED_DIMENSION_COLUMNS = [
     "REF_AREA",

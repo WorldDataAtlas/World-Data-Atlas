@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 BASE_URL = "https://api.imf.org/external/sdmx/2.1"
 
 DATAFLOW_ID = "WEO"
-FILTERS = {"INDICATOR": "NGSD_NGDP"}
+FILTERS = {"INDICATOR": "GS_ED"}
 
 START_PERIOD = "1900"
 END_PERIOD = "2035"
