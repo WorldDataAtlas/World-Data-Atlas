@@ -84,21 +84,21 @@ def normalize_indicator_rows(raw_rows):
     for item in raw_rows:
         rows.append({
             "location_id": safe_get(item, "locationId"),
-            "location_name": safe_get(item, "location", "locationName"),
+            "location_name": safe_get(item, "location", "locationName", "locationLabel"),
             "iso2_code": safe_get(item, "iso2", "iso2Code"),
             "iso3_code": safe_get(item, "iso3", "iso3Code"),
             "indicator_id": safe_get(item, "indicatorId"),
-            "indicator_name": safe_get(item, "indicator", "indicatorName"),
+            "indicator_name": safe_get(item, "indicator", "indicatorName", "indicatorLabel"),
             "year": safe_get(item, "timeLabel", "year", "time"),
             "value": safe_get(item, "value"),
             "variant_id": safe_get(item, "variantId"),
-            "variant_name": safe_get(item, "variant", "variantName"),
+            "variant_name": safe_get(item, "variant", "variantName", "variantLabel"),
             "sex_id": safe_get(item, "sexId"),
-            "sex_name": safe_get(item, "sex", "sexName"),
+            "sex_name": safe_get(item, "sex", "sexLabel","sexName"),
             "age_id": safe_get(item, "ageId"),
-            "age_name": safe_get(item, "age", "ageName"),
+            "age_name": safe_get(item, "ageLabel", "age", "ageName"),
             "category_id": safe_get(item, "categoryId"),
-            "category_name": safe_get(item, "category", "categoryName")})
+            "category_name": safe_get(item, "category", "categoryLabel", "categoryName")})
     df = pd.DataFrame(rows)
     int_cols = ["location_id", "indicator_id", "year", "variant_id", "sex_id", "age_id", "category_id"]
     for col in int_cols: df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
