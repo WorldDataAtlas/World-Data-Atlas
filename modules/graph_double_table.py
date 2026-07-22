@@ -111,7 +111,27 @@ def draw_panel(
             fig.text( x0 + COUNTRY_X_OFFSET, y, row[label_col], fontsize=COUNTRY_FONT_SIZE, weight="bold", color=TEXT_COLOR, ha="left", va="center")
         if left_value_col and right_value_col:
             if pd.notna(row[left_value_col]) and pd.notna(row[right_value_col]):
-                fig.text( x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, f"{left_value_prefix}{int(row[left_value_col])} → {right_value_prefix}{int(row[right_value_col])}", fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
+                fig.text( x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, f"{left_value_prefix}{row[left_value_col]} → {right_value_prefix}{row[right_value_col]}", fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
+        if left_value_col and left_value_col in row.index:
+            left_value = row[left_value_col]
+            if right_value_col and right_value_col in row.index:
+                right_value = row[right_value_col]
+                if pd.notna(left_value) and pd.notna(right_value):
+                    left_text = (
+                        f"{left_value:.{decimal_places}f}"
+                        if isinstance(left_value, (int, float))
+                        else str(left_value))
+                    right_text = (
+                        f"{right_value:.{decimal_places}f}"
+                        if isinstance(right_value, (int, float))
+                        else str(right_value))
+                    value_text = (f"{left_value_prefix}{left_text} → "f"{right_value_prefix}{right_text}")
+                    fig.text(x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, value_text, fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
+            elif pd.notna(left_value):
+                left_text = (f"{left_value:.{decimal_places}f}"
+                    if isinstance(left_value, (int, float))
+                    else str(left_value))
+                fig.text(x0 + width - RANK_X_OFFSET_FROM_RIGHT, y, f"{left_value_prefix}{left_text}", fontsize=RANK_FONT_SIZE, color=MUTED_COLOR, ha="right", va="center")
         if change_col and change_col in row.index:
             value = row[change_col]
             if pd.notna(value): value_text = f"{value:.{decimal_places}f}"

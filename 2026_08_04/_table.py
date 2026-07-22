@@ -13,42 +13,24 @@ from graph_double_table import create_double_table_chart
 
 # ============================================================
 
-"""
-✝️☪️ Where do Christians outnumber Muslims the most—and vice versa?
-
-Difference in the population share of Christians and Muslims by country (2020).
-
-Source: Pew Research Center | #WorldDataAtlas
-"""
-
 TOP_N = 10
-FILE_NAME = "christian_vs_muslim_difference_2020.png"
-TITLE = "Christian vs Muslim Population"
-SUBTITLE = "Top 10 and Bottom 10 countries by the difference between the Christian and Muslim shares of the population, 2020"
-FOOTER_LEFT = "Difference in percentage points (Christians − Muslims)"
-FOOTER_RIGHT = "Source: Pew Research Center"
-LEFT_PANEL_TITLE = "Largest Christian Majority"
-RIGHT_PANEL_TITLE = "Largest Muslim Majority"
-LABEL_COL = "country"
-FLAG_COL = "country_code"
+FILE_NAME = ".png"
+
+TITLE=''
+SUBTITLE=''
+FOOTER_LEFT=''
+FOOTER_RIGHT=''
+LEFT_PANEL_TITLE=''
+RIGHT_PANEL_TITLE=''
+LABEL_COL=''
+FLAG_COL=''
 LEFT_VALUE_ID = None
 RIGHT_VALUE_ID = None
-CHANGE_COL = "christian_minus_muslim_pp"
+CHANGE_COL=''
 
 query = f"""
-        SELECT
-                EN.iso2_code AS country_code,
-                AG.country,
-                ROUND(AG.christians * 100.0 / AG.population, 2) AS christians_pct,
-                ROUND(AG.muslims * 100.0 / AG.population, 2) AS muslims_pct,
-                ROUND((AG.christians - AG.muslims) * 100.0 / AG.population, 2) AS christian_minus_muslim_pp
-        FROM pew.global_religious_estimates AG
-        LEFT JOIN worldbank.entities EN ON LOWER(LTRIM(RTRIM(EN.name))) = LOWER(LTRIM(RTRIM(AG.country))) AND EN.is_country = 1
-        WHERE
-                AG.level = 1
-                AND AG.year = 2020
-                AND AG.population > 0
-                AND EN.iso2_code IS NOT NULL
+
+
         """
 
 # ============================================================

@@ -13,6 +13,14 @@ from scatter_plot import create_scatter_chart
 
 # ============================================================
 
+"""
+🌍 Does religion correlate with fertility?
+
+This chart compares the share of people affiliated with a religion against the fertility rate across countries in 2020.
+
+Sources: Pew Research Center & United Nations | #WorldDataAtlas
+"""
+
 query = """
     SELECT
         EN.wb_id AS country_code,
