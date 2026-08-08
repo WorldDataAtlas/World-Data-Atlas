@@ -19,7 +19,7 @@ mpl.rcParams["animation.ffmpeg_path"] = imageio_ffmpeg.get_ffmpeg_exe()
 
 FIG_WIDTH = 16
 FIG_HEIGHT = 9
-DPI = 200
+DPI = 100
 FONT_FAMILY = "Segoe UI"
 BACKGROUND_COLOR = "#010103"
 CARD_COLOR = "#111827"
