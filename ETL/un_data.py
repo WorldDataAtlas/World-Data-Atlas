@@ -6,7 +6,7 @@ import pandas as pd
 import sqlalchemy as sa
 import settings as s
 
-INDICATOR_IDS = [85]
+INDICATOR_IDS = [59]
 
 START_YEAR = 1900
 END_YEAR = 2050
